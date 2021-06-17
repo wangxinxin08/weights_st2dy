@@ -69,13 +69,13 @@ def parse_static_infos(filename):
     return infos
 
 
-def match_static_to_dygraph(static_infos, dygraph_infos):
+def match_static_to_dygraph(static_infos, dygraph_infos, name='weight_name_map'):
     match_map = {}
     st_is_conv_bn_or_fcs = check_is_conv_bn_or_fc(static_infos)
     dy_is_conv_bn_or_fcs = check_is_conv_bn_or_fc(dygraph_infos)
     st_idx = dy_idx = 0
     # for st_idx, info in enumerate(static_infos):
-    with open("./weight_name_map.txt", 'w') as wf:
+    with open("./{}.txt".format(name), 'w') as wf:
         while st_idx < len(static_infos):
             info = static_infos[st_idx]
             if dy_idx >= len(dygraph_infos):
@@ -132,6 +132,8 @@ if __name__ == "__main__":
     import sys
     dy_filename = sys.argv[1]
     st_filename = sys.argv[2]
+    name = sys.argv[3]
+    name = name + '_weight_name_map'if name else 'weight_name_map'
     params, states = parse_dygraph_params_states(dy_filename)
     dygraph_infos = parse_dygraph_infos(params, states)
     # for info, c in dygraph_infos:
@@ -141,4 +143,4 @@ if __name__ == "__main__":
     #     print(info)
     print("dygraph weights number: ", len(dygraph_infos))
     print("static weights number: ", len(static_infos))
-    match_static_to_dygraph(static_infos, dygraph_infos)
+    match_static_to_dygraph(static_infos, dygraph_infos, name)

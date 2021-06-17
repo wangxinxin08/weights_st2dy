@@ -3,24 +3,25 @@ import sys
 import pickle
 import paddle
 import paddle.fluid as fluid
-from ppdet.utils.download import get_weights_path
+#from ppdet.utils.download import get_weights_path
 
 
 class Load(paddle.nn.Layer):
-     def __init__(self):
-	 super(Load, self).__init__()
+    def __init__(self):
+        super(Load, self).__init__()
 
-     def forward(self, filename):
-	 weight = self.create_parameter(
-	     shape=[1],
-	     dtype='float32',
-	     default_initializer=fluid.initializer.ConstantInitializer(0.0))
-	 self._helper.append_op(
-	     type='load',
-	     inputs={},
-	     outputs={'Out': [weight]},
-	     attrs={'file_path': filename})
-	 return weight
+    def forward(self, filename):
+        weight = self.create_parameter(
+	    shape=[1],
+	    dtype='float32',
+	    default_initializer=fluid.initializer.ConstantInitializer(0.0))
+        self._helper.append_op(
+            type='load',
+	        inputs={},
+	        outputs={'Out': [weight]},
+	        attrs={'file_path': filename})
+        
+        return weight
 
 def convert(weights, weight_name_map_file, target_name):
     weight_name_map = {}
@@ -30,7 +31,7 @@ def convert(weights, weight_name_map_file, target_name):
             weight_name_map[fields[0]] = fields[1]
 
     dst = {}
-    weights = get_weights_path(weights)
+    # weights = get_weights_path(weights)
     if os.path.isdir(weights):
         for k, v in weight_name_map.items():
             k_path = os.path.join(weights, k)
@@ -42,7 +43,10 @@ def convert(weights, weight_name_map_file, target_name):
             else:
                 print("warning: static weight file {} not found".format(k))
     else:
-        src = pickle.load(open(weights))
+        with open(weights, 'rb') as f:
+            src = pickle.load(f, encoding='latin1')
+        #src = pickle.load(open(weights, 'rb'))
+        #src = paddle.load(weights)
         for k, v in weight_name_map.items():
             dst[v] = src[k]
     pickle.dump(dst, open(target_name, 'wb'), protocol=2)
